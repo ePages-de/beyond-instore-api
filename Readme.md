@@ -4,19 +4,21 @@ Apollo
 
 https://glitch.com/edit/#!/dog-graphql-api
 
+## GraphQL Query
+
 ```graphql
-query BeyondGraphQL($sort: String) {
+query BeyondGraphQL($sort: String = "createdAt", $size: Int = 10) {
   shop {
-    _id,
-    name,
-    resellerName,
-    primaryHostname,
-    fallbackHostname,
-    defaultLocale,
+    _id
+    name
+    resellerName
+    primaryHostname
+    fallbackHostname
+    defaultLocale
     defaultCurrency
   }
-  
-  products(sort: $sort) {
+
+  products(sort: $sort, size: $size) {
     _id
     sku
     name
@@ -25,10 +27,22 @@ query BeyondGraphQL($sort: String) {
       currency
     }
   }
-
 }
+```
 
+## Query Variables
+
+```JSON
 {
     "sort": "createdAt,DESC"
 }
+```
+
+## HTTP Headers
+
+```JSON
+{
+  "X-B3-TraceId": "00000000000000000000000000000001"
+}
+
 ```

@@ -1,12 +1,10 @@
 const { ApolloServer, gql } = require('apollo-server');
 const { RESTDataSource } = require("apollo-datasource-rest");
-const { unique } = require('shorthash');
-const _ = require('lodash');
 
 // Construct a schema, using GraphQL schema language
 const typeDefs = gql`
   type Query {
-    products(sort: String): [Product]
+    products(sort: String, size: Int): [Product]
     shop: Shop
   }
 
@@ -34,13 +32,7 @@ const typeDefs = gql`
   }
 `;
 
-// ========== P R O D U C T
-class ProductAPI extends RESTDataSource {
-  constructor() {
-    super();
-    this.baseURL = "https://taggle.beyondshop.cloud/api";
-  }
-
+class BeyondDataSource extends RESTDataSource {
   parseBody(response) {
     const contentType = response.headers.get('Content-Type');
     // fix https://github.com/apollographql/apollo-server/blob/master/packages/apollo-datasource-rest/src/RESTDataSource.ts#L107
@@ -49,6 +41,15 @@ class ProductAPI extends RESTDataSource {
     } else {
       return response.text();
     }    
+  }
+}
+
+
+// ========== P R O D U C T
+class ProductAPI extends BeyondDataSource {
+  constructor() {
+    super();
+    this.baseURL = "https://taggle.beyondshop.cloud/api";
   }
 
   async didReceiveResponse(response) {
@@ -60,8 +61,10 @@ class ProductAPI extends RESTDataSource {
     }
   }
 
-  async getProducts(sort) {
-    const url = (sort !== null) ? `product-view/products?sort=${sort}` : `product-view/products`;
+  async getProducts(sort, size) {
+    const sortParam = (sort !== null) ? `${sort}` : "createdAt";
+    const sizeParam = (size !== null) ? `${size}` : "20";
+    const url = `product-view/products?sort=${sortParam}&size=${sizeParam}`;
     const products = await this.get(url);
     return products;
   }
@@ -69,20 +72,10 @@ class ProductAPI extends RESTDataSource {
 
 
 // ========== S H O P
-class ShopAPI extends RESTDataSource {
+class ShopAPI extends BeyondDataSource {
   constructor() {
     super();
     this.baseURL = "https://taggle.beyondshop.cloud/api";
-  }
-
-  parseBody(response) {
-    const contentType = response.headers.get('Content-Type');
-    // fix https://github.com/apollographql/apollo-server/blob/master/packages/apollo-datasource-rest/src/RESTDataSource.ts#L107
-    if (contentType && (contentType.startsWith('application/hal+json') || contentType.startsWith('application/json'))) {
-      return response.json();
-    } else {
-      return response.text();
-    }    
   }
 
   async didReceiveResponse(response) {
@@ -100,12 +93,11 @@ class ShopAPI extends RESTDataSource {
   }
 }
 
-
 // Provide resolver functions for your schema fields
 const resolvers = {
   Query: {
-    products: async (root, { sort }, { dataSources }) => {
-      return dataSources.productAPI.getProducts(sort);
+    products: async (root, { sort, size }, { dataSources }) => {
+      return dataSources.productAPI.getProducts(sort, size);
     },
     shop: async (root, args, { dataSources }) => {
       return dataSources.shopAPI.getShop();
