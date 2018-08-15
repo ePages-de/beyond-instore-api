@@ -6,22 +6,8 @@ const _ = require('lodash');
 // Construct a schema, using GraphQL schema language
 const typeDefs = gql`
   type Query {
-    dogs: [Dog]
-    dog(breed: String!): Dog
     products(sort: String): [Product]
-  }
-
-  type Dog {
-    id: String!
-    breed: String!
-    displayImage: String
-    images: [Image]
-    subbreeds: [String]
-  }
-
-  type Image {
-    url: String!
-    id: String!
+    shop: Shop
   }
 
   type Product {
@@ -48,6 +34,7 @@ const typeDefs = gql`
   }
 `;
 
+// ========== P R O D U C T
 class ProductAPI extends RESTDataSource {
   constructor() {
     super();
@@ -80,68 +67,48 @@ class ProductAPI extends RESTDataSource {
   }
 }
 
-const createDog = (subbreeds, breed) => ({
-  breed,
-  id: unique(breed),
-  subbreeds: subbreeds.length > 0 ? subbreeds : null
-});
 
-class DogAPI extends RESTDataSource {
+// ========== S H O P
+class ShopAPI extends RESTDataSource {
   constructor() {
     super();
-    this.baseURL = "https://dog.ceo/api";
+    this.baseURL = "https://taggle.beyondshop.cloud/api";
+  }
+
+  parseBody(response) {
+    const contentType = response.headers.get('Content-Type');
+    // fix https://github.com/apollographql/apollo-server/blob/master/packages/apollo-datasource-rest/src/RESTDataSource.ts#L107
+    if (contentType && (contentType.startsWith('application/hal+json') || contentType.startsWith('application/json'))) {
+      return response.json();
+    } else {
+      return response.text();
+    }    
   }
 
   async didReceiveResponse(response) {
     if (response.ok) {
       const body = await this.parseBody(response);
-      return body.message;
+      return body;
     } else {
       throw await this.errorFromResponse(response);
     }
   }
 
-  async getDogs() {
-    const dogs = await this.get(`breeds/list/all`);
-    return _.map(dogs, createDog);
-  }
-
-  async getDog(breed) {
-    const subbreeds = await this.get(`breed/${breed}/list`);
-    return createDog(subbreeds, breed);
-  }
-
-  async getDisplayImage(breed) {
-    return this.get(`breed/${breed}/images/random`, undefined, {
-      cacheOptions: { ttl: 120 }
-    });
-  }
-
-  async getImages(breed) {
-    const images = await this.get(`breed/${breed}/images`);
-    return images.map(image => ({ url: image, id: unique(image) }));
+  async getShop() {
+    const shop = await this.get(`shop`);
+    return shop;
   }
 }
+
 
 // Provide resolver functions for your schema fields
 const resolvers = {
   Query: {
-    dogs: async (root, args, { dataSources }) => {
-      return dataSources.dogAPI.getDogs();
-    },
-    dog: async (root, { breed }, { dataSources }) => {
-      return dataSources.dogAPI.getDog(breed);
-    },
     products: async (root, { sort }, { dataSources }) => {
       return dataSources.productAPI.getProducts(sort);
-    }
-  },
-  Dog: {
-    displayImage: async ({ breed }, args, { dataSources }) => {
-      return dataSources.dogAPI.getDisplayImage(breed);
     },
-    images: async ({ breed }, args, { dataSources }) => {
-      return dataSources.dogAPI.getImages(breed);
+    shop: async (root, args, { dataSources }) => {
+      return dataSources.shopAPI.getShop();
     }
   }
 };
@@ -150,8 +117,8 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   dataSources: () => ({
-    dogAPI: new DogAPI(),
-    productAPI: new ProductAPI()
+    productAPI: new ProductAPI(),
+    shopAPI:  new ShopAPI()
   })
 });
 
