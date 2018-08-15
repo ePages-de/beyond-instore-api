@@ -4,7 +4,7 @@ const { RESTDataSource } = require("apollo-datasource-rest");
 // Construct a schema, using GraphQL schema language
 const typeDefs = gql`
   type Query {
-    products(sort: String, size: Int): [Product]
+    products(sort: String, size: Int, page: Int): [Product]
     shop: Shop
   }
 
@@ -42,16 +42,23 @@ class BeyondDataSource extends RESTDataSource {
       return response.text();
     }    
   }
+
+  resolveURL(request) {
+    //console.log("request:", request);
+    const url = super.resolveURL(request);
+    //console.log("url:", url);
+    return url;
+  }
 }
 
 
 // ========== P R O D U C T
 class ProductAPI extends BeyondDataSource {
-  constructor() {
-    super();
-    this.baseURL = "https://taggle.beyondshop.cloud/api";
+  get baseURL() {
+    //console.log(this.context);
+    return "https://taggle.beyondshop.cloud/api";
   }
-
+  
   async didReceiveResponse(response) {
     if (response.ok) {
       const body = await this.parseBody(response);
@@ -61,11 +68,14 @@ class ProductAPI extends BeyondDataSource {
     }
   }
 
-  async getProducts(sort, size) {
-    const sortParam = (sort !== null) ? `${sort}` : "createdAt";
-    const sizeParam = (size !== null) ? `${size}` : "20";
-    const url = `product-view/products?sort=${sortParam}&size=${sizeParam}`;
-    const products = await this.get(url);
+  async getProducts(sort = null, size = 20, page = 0) {
+    const params = {
+      "page": (page !== null) ? `${page}` : "0",
+      "sort": (sort !== null) ? `${sort}` : "createdAt",
+      "size": (size !== null) ? `${size}` : "20"
+    };
+
+    const products = await this.get(`product-view/products`, params);
     return products;
   }
 }
@@ -96,10 +106,12 @@ class ShopAPI extends BeyondDataSource {
 // Provide resolver functions for your schema fields
 const resolvers = {
   Query: {
-    products: async (root, { sort, size }, { dataSources }) => {
-      return dataSources.productAPI.getProducts(sort, size);
+    products: async (root, { sort, size, page }, { dataSources }) => {
+      return dataSources.productAPI.getProducts(sort, size, page);
     },
     shop: async (root, args, { dataSources }) => {
+      //console.log("root: ", root);
+      //console.log("args: ", args);
       return dataSources.shopAPI.getShop();
     }
   }
