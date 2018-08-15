@@ -8,6 +8,7 @@ const typeDefs = gql`
   type Query {
     dogs: [Dog]
     dog(breed: String!): Dog
+    products(sort: String): [Product]
   }
 
   type Dog {
@@ -22,7 +23,62 @@ const typeDefs = gql`
     url: String!
     id: String!
   }
+
+  type Product {
+    _id: ID!
+    sku: String!
+    name: String!
+    description: String
+    salesPrice: Price
+  }
+
+  type Price {
+    amount: Float!
+    currency: String!
+  }
+
+  type Shop {
+    _id: ID!
+    name: String!
+    resellerName: String!
+    primaryHostname: String!
+    fallbackHostname: String!
+    defaultLocale: String!
+    defaultCurrency: String!
+  }
 `;
+
+class ProductAPI extends RESTDataSource {
+  constructor() {
+    super();
+    this.baseURL = "https://taggle.beyondshop.cloud/api";
+  }
+
+  parseBody(response) {
+    const contentType = response.headers.get('Content-Type');
+    // fix https://github.com/apollographql/apollo-server/blob/master/packages/apollo-datasource-rest/src/RESTDataSource.ts#L107
+    if (contentType && (contentType.startsWith('application/hal+json') || contentType.startsWith('application/json'))) {
+      return response.json();
+    } else {
+      return response.text();
+    }    
+  }
+
+  async didReceiveResponse(response) {
+    if (response.ok) {
+      const body = await this.parseBody(response);
+      return body._embedded.products;
+    } else {
+      throw await this.errorFromResponse(response);
+    }
+  }
+
+  async getProducts(sort) {
+    const url = (sort !== null) ? `product-view/products?sort=${sort}` : `product-view/products`;
+    const products = await this.get(url);
+    return products;
+  }
+}
 
 const createDog = (subbreeds, breed) => ({
   breed,
@@ -75,6 +131,9 @@ const resolvers = {
     },
     dog: async (root, { breed }, { dataSources }) => {
       return dataSources.dogAPI.getDog(breed);
+    },
+    products: async (root, { sort }, { dataSources }) => {
+      return dataSources.productAPI.getProducts(sort);
     }
   },
   Dog: {
@@ -91,7 +150,8 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
   dataSources: () => ({
-    dogAPI: new DogAPI()
+    dogAPI: new DogAPI(),
+    productAPI: new ProductAPI()
   })
 });
 
