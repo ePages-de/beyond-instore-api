@@ -10,6 +10,7 @@ const typeDefs = gql`
       size: Int,
       page: Int
     ): [Product]
+    product(id: ID): Product
   }
 
 #  type Mutation {
@@ -91,32 +92,26 @@ class BeyondDataSource extends RESTDataSource {
 // ========== S H O P
 class ShopAPI extends BeyondDataSource {
   async getShop() {
-    const shop = await this.get(`shop`);
-    return shop;
+    return this.get('shop');
   }
 }
 
 
-// ========== P R O D U C T
-class ProductAPI extends BeyondDataSource {
-  async didReceiveResponse(response) {
-    if (response.ok) {
-      const body = await this.parseBody(response);
-      return body._embedded.products;
-    } else {
-      throw await this.errorFromResponse(response);
-    }
-  }
-
-  async getProducts(sort = "createdAt", size = 20, page = 0) {
+// ========== P R O D U C T - M A N A G E M E N T
+class ProductManagementAPI extends BeyondDataSource {
+  async getProducts(sort = 'createdAt,DESC', size = 20, page = 0) {
     const params = {
-      "page": page,
-      "sort": sort,
-      "size": size,
+      page: page,
+      sort: sort,
+      size: size,
     };
 
-    const products = await this.get(`products`, params);
-    return products;
+    const response = await this.get('products', params);
+    return response._embedded.products;
+  }
+
+  async getProduct(id) {
+    return this.get(`products/${id}`);
   }
 }
 
@@ -129,7 +124,10 @@ const resolvers = {
       return context.dataSources.shopAPI.getShop();
     },
     products: async (parent, args, context, info) => {
-      return context.dataSources.productAPI.getProducts(args.sort, args.size, args.page);
+      return context.dataSources.productManagementAPI.getProducts(args.sort, args.size, args.page);
+    },
+    product: async (parent, args, context, info) => {
+      return context.dataSources.productManagementAPI.getProduct(args.id);
     },
   },
 };
@@ -139,7 +137,7 @@ const server = new ApolloServer({
   resolvers,
   dataSources: () => ({
     shopAPI:  new ShopAPI(),
-    productAPI: new ProductAPI(),
+    productManagementAPI: new ProductManagementAPI(),
   }),
   context: ({ req }) => ({
     // re-use values from incoming GraphQL client request
