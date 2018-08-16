@@ -1,24 +1,23 @@
 
 // Provide resolver functions for your schema fields
 const resolvers = {
-    // https://www.apollographql.com/docs/apollo-server/essentials/data.html#type-signature
-    Query: {
-      shop: async (parent, args, context, info) => {
-        return context.dataSources.shopAPI.getShop();
-      },
-      products: async (parent, args, context, info) => {
-        return context.dataSources.productManagementAPI.getProducts(args.sort, args.size, args.page);
-      },
-      product: async (parent, args, context, info) => {
-        return context.dataSources.productManagementAPI.getProduct(args.id);
-      },
+  // https://www.apollographql.com/docs/apollo-server/essentials/data.html#type-signature
+  Query: {
+    shop: async (parent, args, { dataSources }, info) => {
+      return dataSources.shopAPI.getShop();
     },
-    Mutation: {
-      createProduct: async (parent, args, context, info) => {
-        return context.dataSources.productManagementAPI.createProduct(args.input);
-      }
+    products: async (parent, { sort, size, page }, { dataSources }, info) => {
+      return dataSources.productManagementAPI.getProducts(sort, size, page);
     },
-  };
+    product: async (parent, { id }, { dataSources }, info) => {
+      return dataSources.productManagementAPI.getProduct(id);
+    },
+  },
+  Mutation: {
+    createProduct: async (parent, { input }, { dataSources }, info) => {
+      return dataSources.productManagementAPI.createProduct(input);
+    }
+  },
+};
 
-  module.exports.resolvers = resolvers;
-  
+module.exports.resolvers = resolvers;
