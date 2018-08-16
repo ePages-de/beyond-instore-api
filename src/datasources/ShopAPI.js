@@ -6,4 +6,4 @@ class ShopAPI extends BeyondDataSource {
     }
 }
 
-module.exports.ShopAPI = ShopAPI;
+module.exports = { ShopAPI };

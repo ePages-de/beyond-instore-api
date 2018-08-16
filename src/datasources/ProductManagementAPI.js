@@ -2,11 +2,17 @@ const { BeyondDataSource } = require('./BeyondDataSource');
 
 class ProductManagementAPI extends BeyondDataSource {
     async createProduct(input) {
-        const body = JSON.stringify(input);
-        console.log(body);
+        // WTF?
+        //return this.post('products', input);
 
-        //return this.post('products', body, {'Content-Type': "application/json"});
-        return this.post('products', input);
+        const newProduct = {
+            sku: input.sku,
+            name: input.name,
+            description: input.description,
+            salesPrice: input.salesPrice,
+            taxClass: input.taxClass
+        };
+        return this.post('products', newProduct);
     }
 
     async getProducts(sort = 'createdAt,DESC', size = 20, page = 0) {
@@ -25,4 +31,4 @@ class ProductManagementAPI extends BeyondDataSource {
     }
 }
 
-module.exports.ProductManagementAPI = ProductManagementAPI;
+module.exports = { ProductManagementAPI };

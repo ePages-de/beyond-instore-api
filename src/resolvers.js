@@ -20,4 +20,4 @@ const resolvers = {
   },
 };
 
-module.exports.resolvers = resolvers;
+module.exports = { resolvers };

@@ -10,12 +10,11 @@ class BeyondDataSource extends RESTDataSource {
     }
 
     willSendRequest(request) {
+        request.headers.set('X-B3-TraceId', this.context.trace_id);
+        request.headers.set('User-Agent', this.context.user_agent);
         if (this.context.authorization) {
             request.headers.set('Authorization', this.context.authorization);
         }
-
-        request.headers.set('X-B3-TraceId', this.context.trace_id);
-        request.headers.set('User-Agent', this.context.user_agent);
     }
 
     parseBody(response) {
@@ -29,4 +28,4 @@ class BeyondDataSource extends RESTDataSource {
     }
 };
 
-module.exports.BeyondDataSource = BeyondDataSource;
+module.exports = { BeyondDataSource };
