@@ -1,5 +1,5 @@
 const { ApolloServer, gql } = require('apollo-server');
-const { RESTDataSource } = require("apollo-datasource-rest");
+const { RESTDataSource } = require('apollo-datasource-rest');
 
 // Construct a schema, using GraphQL schema language
 const typeDefs = gql`
@@ -13,15 +13,9 @@ const typeDefs = gql`
     product(id: ID): Product
   }
 
-#  type Mutation {
-#    addProduct(
-#      sku: String!
-#      name: String!
-#      description: String
-#      salesPrice: Price!
-#      taxClass: String!
-#    ): Product
-#  }
+  type Mutation {
+    createProduct(input: ProductInput): Product
+  }
 
   # ng-shop: Shop
   type Shop {
@@ -32,6 +26,20 @@ const typeDefs = gql`
     fallbackHostname: String!
     defaultLocale: String!
     defaultCurrency: String!
+  }
+
+  input ProductInput {
+    sku: String
+    name: String!
+    description: String
+    salesPrice: PriceInput!
+    taxClass: TaxClass!
+  }
+
+  input PriceInput {
+    amount: Float!
+    currency: String!
+    taxModel: TaxModel!
   }
 
   # ng-product-management: Product
@@ -45,16 +53,27 @@ const typeDefs = gql`
     name: String!
     description: String
     salesPrice: Price!
-    taxClass: String
+    taxClass: TaxClass!
+  }
+
+  enum TaxClass {
+    REGULAR
+    REDUCED
+    EXEMPT
   }
 
   # ng-product-management: Price
   type Price {
     amount: Float!
     currency: String!
-    taxModel: String!
+    taxModel: TaxModel!
     taxRate: Float
     derivedPrice: Price!
+  }
+
+  enum TaxModel {
+    GROSS
+    NET
   }
 `;
 
@@ -99,6 +118,13 @@ class ShopAPI extends BeyondDataSource {
 
 // ========== P R O D U C T - M A N A G E M E N T
 class ProductManagementAPI extends BeyondDataSource {
+  async createProduct(input) {
+    const body =  JSON.stringify(input);
+    console.log(body);
+
+    return this.post('/products', body, {'Content-Type': "application/json"});
+  }
+
   async getProducts(sort = 'createdAt,DESC', size = 20, page = 0) {
     const params = {
       page: page,
@@ -130,6 +156,11 @@ const resolvers = {
       return context.dataSources.productManagementAPI.getProduct(args.id);
     },
   },
+  Mutation: {
+    createProduct: async (parent, args, context, info) => {
+      return context.dataSources.productManagementAPI.createProduct(args.input);
+    }
+  },
 };
 
 const server = new ApolloServer({
@@ -148,6 +179,14 @@ const server = new ApolloServer({
     // see https://stackoverflow.com/a/47496558/1393467
     trace_id: [...Array(32)].map(() => Math.random().toString(16)[3]).join(''),
   }),
+  formatError: error => {
+    //console.log(error);
+    return error;
+  },
+  formatResponse: response => {
+    //console.log(response);
+    return response;
+  },  
   introspection: true,
   playground: {
     settings: {
