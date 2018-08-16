@@ -7,7 +7,11 @@ https://glitch.com/edit/#!/dog-graphql-api
 ## GraphQL Query
 
 ```graphql
-query BeyondGraphQL($sort: String = "createdAt", $size: Int = 10, $page: Int = 0) {
+query BeyondGraphQL(
+  $sort: String = "createdAt"
+  $size: Int = 20
+  $page: Int = 0
+) {
   shop {
     _id
     name
@@ -22,9 +26,18 @@ query BeyondGraphQL($sort: String = "createdAt", $size: Int = 10, $page: Int = 0
     _id
     sku
     name
+    description
+    taxClass
     salesPrice {
       amount
       currency
+      taxModel
+      derivedPrice {
+        amount
+        currency
+        taxModel
+        taxRate
+      }
     }
   }
 }
@@ -34,8 +47,9 @@ query BeyondGraphQL($sort: String = "createdAt", $size: Int = 10, $page: Int = 0
 
 ```JSON
 {
-    "sort" : "createdAt,DESC",
-    "page" : 0
+  "sort": "createdAt,ASC",
+  "page": 0,
+  "size": 10
 }
 ```
 
@@ -43,7 +57,6 @@ query BeyondGraphQL($sort: String = "createdAt", $size: Int = 10, $page: Int = 0
 
 ```JSON
 {
-  "X-B3-TraceId" : "00000000000000000000000000000001"
+  "Authorization": "Bearer <TOKEN>"
 }
-
 ```

@@ -4,23 +4,25 @@ const { RESTDataSource } = require("apollo-datasource-rest");
 // Construct a schema, using GraphQL schema language
 const typeDefs = gql`
   type Query {
-    products(sort: String, size: Int, page: Int): [Product]
     shop: Shop
+    products(
+      sort: String,
+      size: Int,
+      page: Int
+    ): [Product]
   }
 
-  type Product {
-    _id: ID!
-    sku: String!
-    name: String!
-    description: String
-    salesPrice: Price
-  }
+#  type Mutation {
+#    addProduct(
+#      sku: String!
+#      name: String!
+#      description: String
+#      salesPrice: Price!
+#      taxClass: String!
+#    ): Product
+#  }
 
-  type Price {
-    amount: Float!
-    currency: String!
-  }
-
+  # ng-shop: Shop
   type Shop {
     _id: ID!
     name: String!
@@ -30,9 +32,50 @@ const typeDefs = gql`
     defaultLocale: String!
     defaultCurrency: String!
   }
+
+  # ng-product-management: Product
+  """
+  A typical product for sale in your online shop.
+  Find details in the [API docs](http://docs.beyondshop.cloud/#resources-product-get).
+  """
+  type Product {
+    _id: ID!
+    sku: String!
+    name: String!
+    description: String
+    salesPrice: Price!
+    taxClass: String
+  }
+
+  # ng-product-management: Price
+  type Price {
+    amount: Float!
+    currency: String!
+    taxModel: String!
+    taxRate: Float
+    derivedPrice: Price!
+  }
 `;
 
+
 class BeyondDataSource extends RESTDataSource {
+  get baseURL() {
+    // TODO different behaviour per env (dev vs. prod)
+    // dev:  POST http://taggle.local.epages.works:4000/
+    // prod: POST https://taggle.beyondshop.cloud/graphql/
+    const tenant = this.context.hostname.split('.')[0];
+    return `https://${tenant}.beyondshop.cloud/api`;
+  }
+
+  willSendRequest(request) {
+    if (this.context.authorization) {
+      request.headers.set('Authorization', this.context.authorization);
+    }
+
+    request.headers.set('X-B3-TraceId', this.context.trace_id);
+    request.headers.set('User-Agent', this.context.user_agent);
+  }
+
   parseBody(response) {
     const contentType = response.headers.get('Content-Type');
     // fix https://github.com/apollographql/apollo-server/blob/master/packages/apollo-datasource-rest/src/RESTDataSource.ts#L107
@@ -42,23 +85,20 @@ class BeyondDataSource extends RESTDataSource {
       return response.text();
     }    
   }
+}
 
-  resolveURL(request) {
-    //console.log("request:", request);
-    const url = super.resolveURL(request);
-    //console.log("url:", url);
-    return url;
+
+// ========== S H O P
+class ShopAPI extends BeyondDataSource {
+  async getShop() {
+    const shop = await this.get(`shop`);
+    return shop;
   }
 }
 
 
 // ========== P R O D U C T
 class ProductAPI extends BeyondDataSource {
-  get baseURL() {
-    //console.log(this.context);
-    return "https://taggle.beyondshop.cloud/api";
-  }
-  
   async didReceiveResponse(response) {
     if (response.ok) {
       const body = await this.parseBody(response);
@@ -68,62 +108,54 @@ class ProductAPI extends BeyondDataSource {
     }
   }
 
-  async getProducts(sort = null, size = 20, page = 0) {
+  async getProducts(sort = "createdAt", size = 20, page = 0) {
     const params = {
-      "page": (page !== null) ? `${page}` : "0",
-      "sort": (sort !== null) ? `${sort}` : "createdAt",
-      "size": (size !== null) ? `${size}` : "20"
+      "page": page,
+      "sort": sort,
+      "size": size,
     };
 
-    const products = await this.get(`product-view/products`, params);
+    const products = await this.get(`products`, params);
     return products;
   }
 }
 
 
-// ========== S H O P
-class ShopAPI extends BeyondDataSource {
-  constructor() {
-    super();
-    this.baseURL = "https://taggle.beyondshop.cloud/api";
-  }
-
-  async didReceiveResponse(response) {
-    if (response.ok) {
-      const body = await this.parseBody(response);
-      return body;
-    } else {
-      throw await this.errorFromResponse(response);
-    }
-  }
-
-  async getShop() {
-    const shop = await this.get(`shop`);
-    return shop;
-  }
-}
-
 // Provide resolver functions for your schema fields
 const resolvers = {
+  // https://www.apollographql.com/docs/apollo-server/essentials/data.html#type-signature
   Query: {
-    products: async (root, { sort, size, page }, { dataSources }) => {
-      return dataSources.productAPI.getProducts(sort, size, page);
+    shop: async (parent, args, context, info) => {
+      return context.dataSources.shopAPI.getShop();
     },
-    shop: async (root, args, { dataSources }) => {
-      //console.log("root: ", root);
-      //console.log("args: ", args);
-      return dataSources.shopAPI.getShop();
-    }
-  }
+    products: async (parent, args, context, info) => {
+      return context.dataSources.productAPI.getProducts(args.sort, args.size, args.page);
+    },
+  },
 };
 
 const server = new ApolloServer({
   typeDefs,
   resolvers,
   dataSources: () => ({
+    shopAPI:  new ShopAPI(),
     productAPI: new ProductAPI(),
-    shopAPI:  new ShopAPI()
-  })
+  }),
+  context: ({ req }) => ({
+    // re-use values from incoming GraphQL client request
+    hostname: req.headers.host,
+    authorization: req.headers.authorization,
+    user_agent: 'Beyond GraphQL Gateway',
+    // all queries share the same trace id
+    // see https://stackoverflow.com/a/47496558/1393467
+    trace_id: [...Array(32)].map(() => Math.random().toString(16)[3]).join(''),
+  }),
+  introspection: true,
+  playground: {
+    settings: {
+      'editor.theme': 'dark',
+    },
+  },
 });
 
 server.listen()
