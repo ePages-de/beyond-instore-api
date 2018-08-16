@@ -1,8 +1,7 @@
 const { ApolloServer } = require('apollo-server');
 const { typeDefs } = require('./typeDefs');
 const { resolvers } = require('./resolvers');
-const { ShopAPI } = require('./datasources/ShopAPI');
-const { ProductManagementAPI } = require('./datasources/ProductManagementAPI');
+const { ShopAPI, ProductManagementAPI } = require('./datasources');
 
 const server = new ApolloServer({
   typeDefs,
@@ -21,7 +20,7 @@ const server = new ApolloServer({
     trace_id: [...Array(32)].map(() => Math.random().toString(16)[3]).join(''),
   }),
   formatError: error => {
-    //console.log(error);
+    console.log(error);
     return error;
   },
   formatResponse: response => {
