@@ -1,5 +1,6 @@
 const { ApolloServer, gql } = require('apollo-server');
-const { RESTDataSource } = require('apollo-datasource-rest');
+const { ShopAPI } = require('./datasources/ShopAPI');
+const { ProductManagementAPI } = require('./datasources/ProductManagementAPI');
 
 // Construct a schema, using GraphQL schema language
 const typeDefs = gql`
@@ -76,69 +77,6 @@ const typeDefs = gql`
     NET
   }
 `;
-
-class BeyondDataSource extends RESTDataSource {
-  get baseURL() {
-    // TODO different behaviour per env (dev vs. prod)
-    // dev:  POST http://taggle.local.epages.works:4000/
-    // prod: POST https://taggle.beyondshop.cloud/graphql/
-    const tenant = this.context.hostname.split('.')[0];
-    return `https://${tenant}.beyondshop.cloud/api`;
-  }
-
-  willSendRequest(request) {
-    if (this.context.authorization) {
-      request.headers.set('Authorization', this.context.authorization);
-    }
-
-    request.headers.set('X-B3-TraceId', this.context.trace_id);
-    request.headers.set('User-Agent', this.context.user_agent);
-  }
-
-  parseBody(response) {
-    const contentType = response.headers.get('Content-Type');
-    // fix https://github.com/apollographql/apollo-server/blob/master/packages/apollo-datasource-rest/src/RESTDataSource.ts#L107
-    if (contentType && (contentType.startsWith('application/hal+json') || contentType.startsWith('application/json'))) {
-      return response.json();
-    } else {
-      return response.text();
-    }    
-  }
-}
-
-// ========== S H O P
-class ShopAPI extends BeyondDataSource {
-  async getShop() {
-    return this.get('shop');
-  }
-}
-
-
-// ========== P R O D U C T - M A N A G E M E N T
-class ProductManagementAPI extends BeyondDataSource {
-  async createProduct(input) {
-    const body =  JSON.stringify(input);
-    console.log(body);
-
-    //return this.post('products', body, {'Content-Type': "application/json"});
-    return this.post('products', input);
-  }
-
-  async getProducts(sort = 'createdAt,DESC', size = 20, page = 0) {
-    const params = {
-      page: page,
-      sort: sort,
-      size: size,
-    };
-
-    const response = await this.get('products', params);
-    return response._embedded.products;
-  }
-
-  async getProduct(id) {
-    return this.get(`products/${id}`);
-  }
-}
 
 
 // Provide resolver functions for your schema fields
