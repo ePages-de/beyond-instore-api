@@ -53,7 +53,7 @@ const typeDefs = gql`
     name: String!
     description: String
     salesPrice: Price!
-    taxClass: TaxClass!
+    taxClass: TaxClass
   }
 
   enum TaxClass {
@@ -76,7 +76,6 @@ const typeDefs = gql`
     NET
   }
 `;
-
 
 class BeyondDataSource extends RESTDataSource {
   get baseURL() {
@@ -107,7 +106,6 @@ class BeyondDataSource extends RESTDataSource {
   }
 }
 
-
 // ========== S H O P
 class ShopAPI extends BeyondDataSource {
   async getShop() {
@@ -122,7 +120,8 @@ class ProductManagementAPI extends BeyondDataSource {
     const body =  JSON.stringify(input);
     console.log(body);
 
-    return this.post('/products', body, {'Content-Type': "application/json"});
+    //return this.post('products', body, {'Content-Type': "application/json"});
+    return this.post('products', input);
   }
 
   async getProducts(sort = 'createdAt,DESC', size = 20, page = 0) {

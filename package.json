@@ -7,8 +7,9 @@
     "start": "node server.js"
   },
   "dependencies": {
-    "apollo-datasource-rest": "0.1.0",
-    "apollo-server": "2.0.0",
+    "apollo-datasource-rest": "0.1.4",
+    "apollo-server": "2.0.2",
+    "core-js": "^2.5.7",
     "graphql": "^0.13.2"
   },
   "engines": {
