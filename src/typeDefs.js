@@ -4,16 +4,31 @@ const { gql } = require('apollo-server');
 const typeDefs = gql`
   type Query {
     shop: Shop
+
     products(
       sort: String,
       size: Int,
       page: Int
     ): [Product]
-    product(id: ID): Product
+
+    product(
+      "Id of Product to retrieve."
+      id: ID!
+    ): Product
   }
 
   type Mutation {
-    createProduct(input: ProductInput): Product
+    createProduct(
+      "Product to create."
+      input: ProductInput!
+    ): Product
+
+    createProductAttribute(
+      "Id of Product to add Attibute to."
+      id: ID!,
+      "Attribute to add to the Product."
+      input: AttributeInput!
+    ): Boolean
   }
 
   # ng-shop: Shop
@@ -80,6 +95,14 @@ const typeDefs = gql`
   enum TaxModel {
     GROSS
     NET
+  }
+
+  input AttributeInput {
+    namespace: String!
+    name: String!
+    locale: String!
+    type: String!
+    value: String!
   }
 
   type Attribute {

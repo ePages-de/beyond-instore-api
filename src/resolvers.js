@@ -18,6 +18,9 @@ const resolvers = {
     createProduct: async (parent, { input }, { dataSources }, info) => {
       return dataSources.productManagementAPI.createProduct(input);
     },
+    createProductAttribute: async (parent, { id, input }, { dataSources }, info) => {
+      return dataSources.productManagementAPI.createProductAttribute(id, input);
+    },
   },
 
   Product: {

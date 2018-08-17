@@ -36,6 +36,14 @@ class ProductManagementAPI extends BeyondDataSource {
         return this.get(`products/${id}/availability`, undefined,  cacheOptions);
     }
 
+    async createProductAttribute(id, input) {
+        const string = JSON.stringify(input);
+        const object = JSON.parse(string);
+        const response = await this.post(`products/${id}/attributes`, object);
+        console.log('response', response);
+        return null;
+    }
+
     async getAttributes(id) {
         const response = await this.get(`products/${id}/attributes`, undefined, cacheOptions);
         return response._embedded ? response._embedded.attributes : [];
