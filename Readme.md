@@ -7,6 +7,50 @@ https://glitch.com/edit/#!/dog-graphql-api
 ## GraphQL Query
 
 ```graphql
+mutation CreateProduct {
+  createProduct(
+    input: {
+      name: "GraphQL product"
+      taxClass: REGULAR
+      salesPrice: { amount: 9.99, currency: "EUR", taxModel: GROSS }
+    }
+  ) {
+    _id
+    sku
+  }
+}
+
+query ReadProduct($productId: ID!) {
+  product(id: $productId) {
+    sku
+    name
+    taxClass
+    tags
+    visible
+    onSale
+    essentialFeatures
+    description
+    availability {
+      availabilityState
+    }
+    attributes {
+      namespace
+      name
+      locale
+      type
+      value
+    }
+    images {
+      data {
+        href
+      }
+      metadata {
+        href
+      }
+    }
+  }
+}
+
 query BeyondGraphQL(
   $sort: String = "createdAt"
   $size: Int = 20
@@ -26,17 +70,25 @@ query BeyondGraphQL(
     _id
     sku
     name
-    description
-    taxClass
+    visible
     salesPrice {
       amount
       currency
       taxModel
-      derivedPrice {
-        amount
-        currency
-        taxModel
-        taxRate
+    }
+    availability {
+      availabilityState
+    }
+    attributes {
+      namespace
+      name
+      locale
+      type
+      value
+    }
+    images {
+      data {
+        href
       }
     }
   }

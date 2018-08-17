@@ -53,6 +53,13 @@ const typeDefs = gql`
     description: String
     salesPrice: Price!
     taxClass: TaxClass
+    visible: Boolean!
+    onSale: Boolean
+    tags: [String]
+    essentialFeatures: String
+    availability: Availability
+    attributes: [Attribute]
+    images: [Image]
   }
 
   enum TaxClass {
@@ -73,6 +80,32 @@ const typeDefs = gql`
   enum TaxModel {
     GROSS
     NET
+  }
+
+  type Attribute {
+    namespace: String!
+    name: String!
+    locale: String!
+    type: String!
+    value: String!
+  }
+
+  type Availability {
+    availableStock: Int
+    stockThreshold: Int
+    purchasable: Boolean!
+    availabilityState: String!
+  }
+
+  type Image {
+    _id: ID!
+    data: Link
+    metadata: Link
+  }
+
+  type Link {
+    href: String!
+    templated: Boolean
   }
 `;
 

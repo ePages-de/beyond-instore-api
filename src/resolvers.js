@@ -13,11 +13,24 @@ const resolvers = {
       return dataSources.productManagementAPI.getProduct(id);
     },
   },
+
   Mutation: {
     createProduct: async (parent, { input }, { dataSources }, info) => {
       return dataSources.productManagementAPI.createProduct(input);
-    }
+    },
   },
+
+  Product: {
+    availability: async ({ _id }, args, { dataSources }, info) => {
+      return dataSources.productManagementAPI.getAvailability(_id);
+    },
+    attributes: async ({ _id }, args, { dataSources }, info) => {
+      return dataSources.productManagementAPI.getAttributes(_id);
+    },
+    images: async ({ _id }, args, { dataSources }, info) => {
+      return dataSources.productManagementAPI.getImages(_id);
+    },
+  }
 };
 
 module.exports = { resolvers };
