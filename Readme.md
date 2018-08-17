@@ -20,8 +20,54 @@ mutation CreateProduct {
   }
 }
 
+mutation CreateMultipleProductAttributes($productId: ID!) {
+  createProductAttributes(
+    id: $productId
+    input: [
+      {
+        namespace: "custom"
+        name: "color"
+        locale: "en-GB"
+        type: "STRING"
+        value: "red"
+      }
+      {
+        namespace: "custom"
+        name: "size"
+        locale: "en-GB"
+        type: "STRING"
+        value: "S"
+      }
+    ]
+  )
+}
+
+mutation CreateProductAttributes($productId: ID!) {
+  firstAtt: createProductAttribute(
+    id: $productId
+    input: {
+      namespace: "custom"
+      name: "color"
+      locale: "en-GB"
+      type: "STRING"
+      value: "green"
+    }
+  )
+  secondAtt: createProductAttribute(
+    id: $productId
+    input: {
+      namespace: "custom"
+      name: "size"
+      locale: "en-GB"
+      type: "STRING"
+      value: "XL"
+    }
+  )
+}
+
 query ReadProduct($productId: ID!) {
   product(id: $productId) {
+    _id
     sku
     name
     taxClass
