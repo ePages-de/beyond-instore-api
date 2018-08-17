@@ -4,15 +4,9 @@ class ProductManagementAPI extends BeyondDataSource {
     async createProduct(input) {
         // WTF?
         //return this.post('products', input);
-
-        const newProduct = {
-            sku: input.sku,
-            name: input.name,
-            description: input.description,
-            salesPrice: input.salesPrice,
-            taxClass: input.taxClass
-        };
-        return this.post('products', newProduct);
+        const string = JSON.stringify(input);
+        const object = JSON.parse(string);
+        return this.post('products', object);
     }
 
     async getProducts(sort = 'createdAt,DESC', size = 20, page = 0) {
