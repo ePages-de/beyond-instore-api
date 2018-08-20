@@ -35,8 +35,11 @@ const server = new ApolloServer({
   },
 });
 
-server.listen()
+const port = process.env.PORT || 4000;
+const node = process.env.NODE_ENV || 'development';
+
+server.listen({ port: port })
   .then(({ url }) => {
-    console.log(`🚀 Server ready at ${url}`)
+    console.info(`🚀 Server ready at ${url} for ${node}.`)
   })
-  .catch(e => console.log(`Error: ${e}`));
+  .catch(e => console.error(`Error: ${e}`));

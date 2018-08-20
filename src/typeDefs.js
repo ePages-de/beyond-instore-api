@@ -15,6 +15,7 @@ const typeDefs = gql`
       "Id of Product to retrieve."
       id: ID!
     ): Product
+
   }
 
   type Mutation {
@@ -36,6 +37,10 @@ const typeDefs = gql`
       "Attributes to add to the Product."
       input: [AttributeInput!]!
     ): Boolean
+
+    uploadImage(
+      file: Upload!
+    ): File!
   }
 
   # ng-shop: Shop
@@ -136,6 +141,12 @@ const typeDefs = gql`
   type Link {
     href: String!
     templated: Boolean
+  }
+
+  type File {
+    filename: String!
+    mimetype: String!
+    encoding: String!
   }
 `;
 

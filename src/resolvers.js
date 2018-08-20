@@ -24,6 +24,20 @@ const resolvers = {
     createProductAttributes: async (parent, { id, input }, { dataSources }, info) => {
       return dataSources.productManagementAPI.createProductAttributes(id, input);
     },
+
+    uploadImage: (parent, { file }) => {
+      return file.then(upload => {
+        //Contents of Upload scalar: https://github.com/jaydenseric/apollo-upload-server#upload-scalar
+        //file.stream is a node stream that contains the contents of the uploaded file
+        //node stream api: https://nodejs.org/api/stream.html
+
+        // TODO do something meaningful with the stream, e.g. POST it to BEYOND API
+        // see https://github.com/jaydenseric/apollo-upload-examples/blob/master/api/resolvers.mjs#L42
+        upload.stream.destroy();
+
+        return upload;
+      });
+    },
   },
 
   Product: {
