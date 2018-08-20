@@ -1,7 +1,11 @@
 const { ApolloServer } = require('apollo-server');
+const { merge } = require('lodash');
 const { typeDefs } = require('./typeDefs');
-const { resolvers } = require('./resolvers');
-const { ShopAPI, ProductManagementAPI } = require('./datasources');
+
+const { ShopResolvers, ShopAPI } = require('./api/shop');
+const { ProductManagementResolvers, ProductManagementAPI } = require('./api/product-management');
+
+const resolvers = merge(ShopResolvers, ProductManagementResolvers);
 
 const server = new ApolloServer({
   typeDefs,

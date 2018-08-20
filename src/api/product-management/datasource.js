@@ -1,4 +1,4 @@
-const { BeyondDataSource } = require('./BeyondDataSource');
+const { BeyondDataSource } = require('../BeyondDataSource');
 
 const cacheOptions = { cacheOptions: { ttl: 120 } };
 
