@@ -29,14 +29,14 @@ const typeDefs = gql`
       id: ID!,
       "Attribute to add to the Product."
       input: AttributeInput!
-    ): Boolean
+    ): Attribute!
 
     createProductAttributes(
       "Id of Product to add Attibutes to."
       id: ID!,
       "Attributes to add to the Product."
       input: [AttributeInput!]!
-    ): Boolean
+    ): [Attribute!]!
 
     enableProductStockManagement(
       "Id of Product to enable stock management."

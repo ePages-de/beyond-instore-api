@@ -43,7 +43,10 @@ mutation CreateProduct {
 
 mutation DisableStockManagement($productId: ID!) {
   disableProductStockManagement(id: $productId) {
+    availableStock
+    stockThreshold
     availabilityState
+    purchasable
   }
 }
 
@@ -52,10 +55,41 @@ mutation EnableStockManagement($productId: ID!) {
     id: $productId
     input: { initialAvailableStock: 100, stockThreshold: 5 }
   ) {
+    availableStock
+    stockThreshold
     availabilityState
+    purchasable
   }
 }
 
+mutation CreateProductAttributes($productId: ID!) {
+  firstAtt: createProductAttribute(
+    id: $productId
+    input: {
+      namespace: "custom"
+      name: "color"
+      locale: "en-GB"
+      type: "STRING"
+      value: "green"
+    }
+  ) {
+    name
+    value
+  }
+  secondAtt: createProductAttribute(
+    id: $productId
+    input: {
+      namespace: "custom"
+      name: "size"
+      locale: "en-GB"
+      type: "STRING"
+      value: "XL"
+    }
+  ) {
+    name
+    value
+  }
+}
 mutation CreateMultipleProductAttributes($productId: ID!) {
   createProductAttributes(
     id: $productId
@@ -75,30 +109,45 @@ mutation CreateMultipleProductAttributes($productId: ID!) {
         value: "S"
       }
     ]
-  )
+  ) {
+    name
+    value
+  }
 }
 
-mutation CreateProductAttributes($productId: ID!) {
-  firstAtt: createProductAttribute(
+mutation BatchUpdate($productId: ID!) {
+  stock: enableProductStockManagement(
     id: $productId
-    input: {
-      namespace: "custom"
-      name: "color"
-      locale: "en-GB"
-      type: "STRING"
-      value: "green"
-    }
-  )
-  secondAtt: createProductAttribute(
+    input: { initialAvailableStock: 100, stockThreshold: 5 }
+  ) {
+    availableStock
+    stockThreshold
+    availabilityState
+    purchasable
+  }
+
+  attributes: createProductAttributes(
     id: $productId
-    input: {
-      namespace: "custom"
-      name: "size"
-      locale: "en-GB"
-      type: "STRING"
-      value: "XL"
-    }
-  )
+    input: [
+      {
+        namespace: "custom"
+        name: "color"
+        locale: "en-GB"
+        type: "STRING"
+        value: "green"
+      }
+      {
+        namespace: "custom"
+        name: "size"
+        locale: "en-GB"
+        type: "STRING"
+        value: "XL"
+      }
+    ]
+  ) {
+    name
+    value
+  }
 }
 
 mutation UploadImage($file: Upload!) {

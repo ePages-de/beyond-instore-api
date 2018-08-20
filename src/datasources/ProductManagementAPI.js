@@ -41,19 +41,19 @@ class ProductManagementAPI extends BeyondDataSource {
     }
 
     async createProductAttribute(id, input) {
-        const string = JSON.stringify(input);
-        const object = JSON.parse(string);
-        const response = await this.post(`products/${id}/attributes`, object);
-        return null;
+        const body = fixJson(input);
+        const response = await this.post(`products/${id}/attributes`, body);
+        return body;
     }
 
     async createProductAttributes(id, input) {
+        const attributes = [];
         for (const attribute of input) {
-            const string = JSON.stringify(attribute);
-            const object = JSON.parse(string);
-            let response = await this.createProductAttribute(id, object);
+            const body = fixJson(attribute);
+            let response = await this.createProductAttribute(id, body);
+            attributes.push(body);
         }
-        return null;
+        return attributes;
     }
 
     async enableProductStockManagement(id, input) {
