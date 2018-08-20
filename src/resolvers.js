@@ -24,6 +24,12 @@ const resolvers = {
     createProductAttributes: async (parent, { id, input }, { dataSources }, info) => {
       return dataSources.productManagementAPI.createProductAttributes(id, input);
     },
+    enableProductStockManagement: async (parent, { id, input }, { dataSources }, info) => {
+      return dataSources.productManagementAPI.enableProductStockManagement(id, input);
+    },
+    disableProductStockManagement: async (parent, { id }, { dataSources }, info) => {
+      return dataSources.productManagementAPI.disableProductStockManagement(id);
+    },
 
     uploadImage: (parent, { file }) => {
       return file.then(upload => {

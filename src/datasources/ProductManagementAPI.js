@@ -7,6 +7,10 @@ const createLink = (link) => (link ? {
     templated: link.templated ? true : false,
 } : {});
 
+const fixJson = (input) => (
+    JSON.parse(JSON.stringify(input))
+);
+
 class ProductManagementAPI extends BeyondDataSource {
 
     async createProduct(input) {
@@ -50,6 +54,17 @@ class ProductManagementAPI extends BeyondDataSource {
             let response = await this.createProductAttribute(id, object);
         }
         return null;
+    }
+
+    async enableProductStockManagement(id, input) {
+        const body = fixJson(input);
+        const response = await this.post(`products/${id}/availability/enable-stock-management`, body);
+        return response;
+    }
+
+    async disableProductStockManagement(id) {
+        const response = await this.post(`products/${id}/availability/disable-stock-management`);
+        return response;
     }
 
     async getAttributes(id) {

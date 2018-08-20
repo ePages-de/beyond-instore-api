@@ -38,6 +38,18 @@ const typeDefs = gql`
       input: [AttributeInput!]!
     ): Boolean
 
+    enableProductStockManagement(
+      "Id of Product to enable stock management."
+      id: ID!,
+      "Stock management data to enable for the Product."
+      input: AvailabilityInput!
+    ): Availability!
+
+    disableProductStockManagement(
+      "Id of Product to enable stock management."
+      id: ID!,
+    ): Availability!
+
     uploadImage(
       file: Upload!
     ): File!
@@ -123,6 +135,11 @@ const typeDefs = gql`
     locale: String!
     type: String!
     value: String!
+  }
+
+  input AvailabilityInput {
+    initialAvailableStock: Int!
+    stockThreshold: Int!
   }
 
   type Availability {

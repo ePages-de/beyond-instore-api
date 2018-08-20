@@ -41,6 +41,21 @@ mutation CreateProduct {
   }
 }
 
+mutation DisableStockManagement($productId: ID!) {
+  disableProductStockManagement(id: $productId) {
+    availabilityState
+  }
+}
+
+mutation EnableStockManagement($productId: ID!) {
+  enableProductStockManagement(
+    id: $productId
+    input: { initialAvailableStock: 100, stockThreshold: 5 }
+  ) {
+    availabilityState
+  }
+}
+
 mutation CreateMultipleProductAttributes($productId: ID!) {
   createProductAttributes(
     id: $productId
