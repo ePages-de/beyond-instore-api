@@ -7,6 +7,7 @@ const createLink = (link) => (link ? {
     templated: link.templated ? true : false,
 } : {});
 
+// WTF?
 const fixJson = (input) => (
     JSON.parse(JSON.stringify(input))
 );
@@ -14,11 +15,8 @@ const fixJson = (input) => (
 class ProductManagementAPI extends BeyondDataSource {
 
     async createProduct(input) {
-        // WTF?
-        //return this.post('products', input);
-        const string = JSON.stringify(input);
-        const object = JSON.parse(string);
-        return this.post('products', object);
+        const body = fixJson(input);
+        return this.post('products', body);
     }
 
     async getProducts(sort = 'createdAt,DESC', size = 20, page = 0) {
