@@ -295,6 +295,7 @@ mutation UploadImage($file: Upload!) {
 
 ```JSON
 {
+  "X-Beyond-API": "https://taggle.beyondshop.cloud/api",
   "Authorization": "Bearer <TOKEN>"
 }
 ```

@@ -6,6 +6,9 @@ const { ProductManagementResolvers, ProductManagementAPI } = require('./api/prod
 
 const resolvers = merge(ShopResolvers, ProductManagementResolvers);
 
+const port = process.env.PORT || 4000;
+const node = process.env.NODE_ENV || 'development';
+
 const server = new ApolloServer({
     typeDefs,
     resolvers,
@@ -15,7 +18,9 @@ const server = new ApolloServer({
     }),
     context: ({ req }) => ({
         // re-use values from incoming GraphQL client request
+        headers: req.headers,
         hostname: req.headers.host,
+        beyond_api: req.headers['x-beyond-api'],
         authorization: req.headers.authorization,
         user_agent: 'Beyond GraphQL Gateway',
         // all queries share the same trace id
@@ -37,9 +42,6 @@ const server = new ApolloServer({
         },
     },
 });
-
-const port = process.env.PORT || 4000;
-const node = process.env.NODE_ENV || 'development';
 
 server.listen({ port: port })
     .then(({ url }) => {

@@ -2,11 +2,9 @@ const { RESTDataSource } = require('apollo-datasource-rest');
 
 class BeyondDataSource extends RESTDataSource {
     get baseURL() {
-        // TODO different behaviour per env (dev vs. prod)
-        // dev:  POST http://taggle.local.epages.works:4000/
-        // prod: POST https://taggle.beyondshop.cloud/graphql/
+        const api = this.context.beyond_api;
         const tenant = this.context.hostname.split('.')[0];
-        return `https://${tenant}.beyondshop.cloud/api`;
+        return api || `https://${tenant}.beyondshop.cloud/api`;
     }
 
     willSendRequest(request) {
