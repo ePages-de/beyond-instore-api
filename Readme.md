@@ -28,8 +28,107 @@ $ ndb .
 ## GraphQL Query
 
 ```graphql
+#################################################
+# get current shop
+#################################################
+query GetShop {
+  shop: shop {
+    _id
+    name
+    resellerName
+    primaryHostname
+    fallbackHostname
+    defaultLocale
+    defaultCurrency
+  }
+}
+
+#################################################
+# get single product
+#################################################
+query GetProduct($productId: ID!) {
+  product: product(id: $productId) {
+    _id
+    sku
+    name
+    taxClass
+    tags
+    visible
+    onSale
+    essentialFeatures
+    description
+    availability {
+      availabilityState
+    }
+    attributes {
+      namespace
+      name
+      locale
+      type
+      value
+    }
+    images {
+      data {
+        href
+      }
+      metadata {
+        href
+      }
+    }
+  }
+}
+
+#################################################
+# get current shop and list of products
+#################################################
+query GetShopAndProducts(
+  $sort: String = "createdAt"
+  $size: Int = 20
+  $page: Int = 0
+) {
+  shop: shop {
+    _id
+    name
+    resellerName
+    primaryHostname
+    fallbackHostname
+    defaultLocale
+    defaultCurrency
+  }
+
+  products: products(sort: $sort, size: $size, page: $page) {
+    _id
+    sku
+    name
+    visible
+    salesPrice {
+      amount
+      currency
+      taxModel
+    }
+    availability {
+      availabilityState
+    }
+    attributes {
+      namespace
+      name
+      locale
+      type
+      value
+    }
+    images {
+      data {
+        href
+      }
+    }
+  }
+}
+
+#################################################
+# create product
+#################################################
 mutation CreateProduct {
-  createProduct(
+  createProduct: createProduct(
     input: {
       name: "GraphQL product"
       taxClass: REGULAR
@@ -41,8 +140,11 @@ mutation CreateProduct {
   }
 }
 
+#################################################
+# disable stock management
+#################################################
 mutation DisableStockManagement($productId: ID!) {
-  disableProductStockManagement(id: $productId) {
+  disableStock: disableProductStockManagement(id: $productId) {
     availableStock
     stockThreshold
     availabilityState
@@ -50,8 +152,11 @@ mutation DisableStockManagement($productId: ID!) {
   }
 }
 
+#################################################
+# enable product management
+#################################################
 mutation EnableStockManagement($productId: ID!) {
-  enableProductStockManagement(
+  enableStock: enableProductStockManagement(
     id: $productId
     input: { initialAvailableStock: 100, stockThreshold: 5 }
   ) {
@@ -62,8 +167,11 @@ mutation EnableStockManagement($productId: ID!) {
   }
 }
 
-mutation CreateProductAttributes($productId: ID!) {
-  firstAtt: createProductAttribute(
+#################################################
+# create product attributes with multiple requests
+#################################################
+mutation CreateProductAttributesWithMultipleRequests($productId: ID!) {
+  attribute01: createProductAttribute(
     id: $productId
     input: {
       namespace: "custom"
@@ -76,7 +184,8 @@ mutation CreateProductAttributes($productId: ID!) {
     name
     value
   }
-  secondAtt: createProductAttribute(
+
+  attrbiute02: createProductAttribute(
     id: $productId
     input: {
       namespace: "custom"
@@ -90,8 +199,12 @@ mutation CreateProductAttributes($productId: ID!) {
     value
   }
 }
-mutation CreateMultipleProductAttributes($productId: ID!) {
-  createProductAttributes(
+
+#################################################
+# create product attributes using single request
+#################################################
+mutation CreateProductAttributesWithSingleRequest($productId: ID!) {
+  createAttributes: createProductAttributes(
     id: $productId
     input: [
       {
@@ -115,7 +228,12 @@ mutation CreateMultipleProductAttributes($productId: ID!) {
   }
 }
 
-mutation BatchUpdate($productId: ID!) {
+#################################################
+# batch product update:
+# * enable stock management
+# * add multiple attributes
+#################################################
+mutation BatchUpdateProduct($productId: ID!) {
   stock: enableProductStockManagement(
     id: $productId
     input: { initialAvailableStock: 100, stockThreshold: 5 }
@@ -150,86 +268,14 @@ mutation BatchUpdate($productId: ID!) {
   }
 }
 
+#################################################
+# upload binary data
+#################################################
 mutation UploadImage($file: Upload!) {
-  uploadImage(file: $file) {
+  upload: uploadImage(file: $file) {
     filename
     mimetype
     encoding
-  }
-}
-
-query ReadProduct($productId: ID!) {
-  product(id: $productId) {
-    _id
-    sku
-    name
-    taxClass
-    tags
-    visible
-    onSale
-    essentialFeatures
-    description
-    availability {
-      availabilityState
-    }
-    attributes {
-      namespace
-      name
-      locale
-      type
-      value
-    }
-    images {
-      data {
-        href
-      }
-      metadata {
-        href
-      }
-    }
-  }
-}
-
-query BeyondGraphQL(
-  $sort: String = "createdAt"
-  $size: Int = 20
-  $page: Int = 0
-) {
-  shop {
-    _id
-    name
-    resellerName
-    primaryHostname
-    fallbackHostname
-    defaultLocale
-    defaultCurrency
-  }
-
-  products(sort: $sort, size: $size, page: $page) {
-    _id
-    sku
-    name
-    visible
-    salesPrice {
-      amount
-      currency
-      taxModel
-    }
-    availability {
-      availabilityState
-    }
-    attributes {
-      namespace
-      name
-      locale
-      type
-      value
-    }
-    images {
-      data {
-        href
-      }
-    }
   }
 }
 ```
@@ -240,7 +286,8 @@ query BeyondGraphQL(
 {
   "sort": "createdAt,ASC",
   "page": 0,
-  "size": 10
+  "size": 10,
+  "productId": "bb044796-f085-476b-a494-eaa9ca7656df"
 }
 ```
 

@@ -33,7 +33,7 @@ const server = new ApolloServer({
     introspection: true,
     playground: {
         settings: {
-            'editor.theme': 'dark',
+            'editor.theme': 'light',
         },
     },
 });
