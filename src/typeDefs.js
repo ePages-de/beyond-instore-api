@@ -21,6 +21,7 @@ const typeDefs = gql`
     defaultCurrency: String!
     attributes: [Attribute]
     images: [Image]
+    legalContent: [LegalContent]
   }
 
   type Attribute {
@@ -28,6 +29,13 @@ const typeDefs = gql`
     value: String!
     public: Boolean!
     readOnly: Boolean!
+  }
+
+  type LegalContent {
+    type: String!
+    content: String!
+    mandatory: Boolean!
+    pdf: Link
   }
 
   type Image {

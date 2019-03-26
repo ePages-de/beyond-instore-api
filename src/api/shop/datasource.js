@@ -27,6 +27,26 @@ class ShopAPI extends BeyondDataSource {
             metadadata: createLink(image._links.metadadata),
         }));
     }
+
+    async getLegalContent(type) {
+        const response = await this.get(`legal-content/${type}`, undefined, cacheOptions);
+        return {
+            type: response.type,
+            content: response.content,
+            mandatory: response.mandatory,
+            pdf: createLink(response._links.pdf),
+        };
+    }
+
+    async getAllLegalContent() {
+        const legalContent = [];
+        const types = ["privacy-policy", "terms-and-conditions", "right-of-withdrawal"];
+        for (const type of types) {
+            let response = await this.getLegalContent(type);
+            legalContent.push(response);
+        }
+        return legalContent;
+    }
 }
 
 module.exports = { ShopAPI };

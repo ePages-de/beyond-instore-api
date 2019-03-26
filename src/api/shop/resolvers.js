@@ -12,6 +12,9 @@ const resolvers = {
         images: async (parent, args, { dataSources }, info) => {
             return dataSources.shopAPI.getImages();
         },
+        legalContent: async (parent, args, {dataSources}, info) => {
+            return dataSources.shopAPI.getAllLegalContent();
+        }
     }
 }
 
