@@ -1,6 +1,6 @@
 {
-  "name": "beyond-apollo",
-  "version": "0.0.1",
+  "name": "beyond-instore-api",
+  "version": "1.0.0",
   "description": "Apollo GraphQL gateway in front of Beyond REST API",
   "main": "src/index.js",
   "scripts": {
@@ -8,20 +8,22 @@
   },
   "dependencies": {
     "apollo-datasource-rest": "0.1.4",
-    "apollo-server": "2.0.2",
-    "core-js": "^2.5.7",
-    "lodash": "4.17.10",
-    "graphql": "^0.13.2"
+    "apollo-server": "^2.4.8",
+    "core-js": "^2.6.5",
+    "graphql": "^0.13.2",
+    "lodash": "^4.17.11"
   },
   "engines": {
     "node": "8.x"
   },
   "repository": {
-    "url": "https://github.com/ePages-de/ng-spikes/"
+    "url": "https://github.com/ePages-de/beyond-instore-api/"
   },
   "license": "MIT",
   "keywords": [
     "apollo",
-    "graphql"
+    "graphql",
+    "beyond",
+    "instore"
   ]
 }

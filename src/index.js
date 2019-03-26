@@ -2,9 +2,8 @@ const { ApolloServer } = require('apollo-server');
 const { merge } = require('lodash');
 const { typeDefs } = require('./typeDefs');
 const { ShopResolvers, ShopAPI } = require('./api/shop');
-const { ProductManagementResolvers, ProductManagementAPI } = require('./api/product-management');
 
-const resolvers = merge(ShopResolvers, ProductManagementResolvers);
+const resolvers = merge(ShopResolvers);
 
 const port = process.env.PORT || 4000;
 const node = process.env.NODE_ENV || 'development';
@@ -14,7 +13,6 @@ const server = new ApolloServer({
     resolvers,
     dataSources: () => ({
         shopAPI: new ShopAPI(),
-        productManagementAPI: new ProductManagementAPI(),
     }),
     context: ({ req }) => ({
         // re-use values from incoming GraphQL client request
