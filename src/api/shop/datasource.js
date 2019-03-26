@@ -34,7 +34,7 @@ class ShopAPI extends BeyondDataSource {
             type: response.type,
             content: response.content,
             mandatory: response.mandatory,
-            pdf: createLink(response._links.pdf),
+            pdf: (response._links.pdf ? createLink(response._links.pdf) : null),
         };
     }
 
