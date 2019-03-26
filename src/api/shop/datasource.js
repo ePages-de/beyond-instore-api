@@ -38,9 +38,8 @@ class ShopAPI extends BeyondDataSource {
         };
     }
 
-    async getAllLegalContent() {
+    async getAllLegalContent(types) {
         const legalContent = [];
-        const types = ["privacy-policy", "terms-and-conditions", "right-of-withdrawal"];
         for (const type of types) {
             let response = await this.getLegalContent(type);
             legalContent.push(response);
