@@ -1,11 +1,19 @@
-const { gql } = require('apollo-server');
+const { gql } = require("apollo-server");
 
 // Construct a schema, using GraphQL schema language
 const typeDefs = gql`
   type Query {
-    shop(
-      legalContent: [String]
-    ): Shop
+    shop: Shop
+
+    legalContent(
+      "Type of LegalContent to retrieve."
+      type: String!
+    ): LegalContent
+
+    allLegalContent(
+      "Types of LegalContent to retrieve."
+      types: [String!]
+    ): [LegalContent]
   }
 
   # ng-shop: Shop
@@ -23,7 +31,6 @@ const typeDefs = gql`
     defaultCurrency: String!
     attributes: [Attribute]
     images: [Image]
-    legalContent: [LegalContent]
   }
 
   type Attribute {
@@ -31,13 +38,6 @@ const typeDefs = gql`
     value: String!
     public: Boolean!
     readOnly: Boolean!
-  }
-
-  type LegalContent {
-    type: String!
-    content: String!
-    mandatory: Boolean!
-    pdf: Link
   }
 
   type Image {
@@ -50,6 +50,13 @@ const typeDefs = gql`
   type Link {
     href: String!
     templated: Boolean
+  }
+
+  type LegalContent {
+    type: String!
+    content: String!
+    mandatory: Boolean!
+    pdf: Link
   }
 `;
 

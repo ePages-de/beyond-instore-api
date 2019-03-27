@@ -28,254 +28,29 @@ $ ndb .
 ## GraphQL Query
 
 ```graphql
-#################################################
-# get current shop
-#################################################
-query GetShop {
+query GetShopAndLegalContent($legalContent: [String!] = ["privacy-policy"]) {
   shop: shop {
-    _id
     name
-    resellerName
     primaryHostname
-    fallbackHostname
     defaultLocale
-    defaultCurrency
-  }
-}
-
-#################################################
-# get single product
-#################################################
-query GetProduct($productId: ID!) {
-  product: product(id: $productId) {
-    _id
-    sku
-    name
-    taxClass
-    tags
-    visible
-    onSale
-    essentialFeatures
-    description
-    availability {
-      availabilityState
-    }
     attributes {
-      namespace
       name
-      locale
-      type
       value
     }
     images {
-      data {
-        href
-      }
-      metadata {
-        href
-      }
-    }
-  }
-}
-
-#################################################
-# get current shop and list of products
-#################################################
-query GetShopAndProducts(
-  $sort: String = "createdAt"
-  $size: Int = 20
-  $page: Int = 0
-) {
-  shop: shop {
-    _id
-    name
-    resellerName
-    primaryHostname
-    fallbackHostname
-    defaultLocale
-    defaultCurrency
-  }
-
-  products: products(sort: $sort, size: $size, page: $page) {
-    _id
-    sku
-    name
-    visible
-    salesPrice {
-      amount
-      currency
-      taxModel
-    }
-    availability {
-      availabilityState
-    }
-    attributes {
-      namespace
-      name
-      locale
-      type
-      value
-    }
-    images {
+      label
       data {
         href
       }
     }
   }
-}
 
-#################################################
-# create product
-#################################################
-mutation CreateProduct {
-  createProduct: createProduct(
-    input: {
-      name: "GraphQL product"
-      taxClass: REGULAR
-      salesPrice: { amount: 9.99, currency: "EUR", taxModel: GROSS }
+  legalContent: allLegalContent(types: $legalContent) {
+    type
+    content
+    pdf {
+      href
     }
-  ) {
-    _id
-    sku
-  }
-}
-
-#################################################
-# disable stock management
-#################################################
-mutation DisableStockManagement($productId: ID!) {
-  disableStock: disableProductStockManagement(id: $productId) {
-    availableStock
-    stockThreshold
-    availabilityState
-    purchasable
-  }
-}
-
-#################################################
-# enable product management
-#################################################
-mutation EnableStockManagement($productId: ID!) {
-  enableStock: enableProductStockManagement(
-    id: $productId
-    input: { initialAvailableStock: 100, stockThreshold: 5 }
-  ) {
-    availableStock
-    stockThreshold
-    availabilityState
-    purchasable
-  }
-}
-
-#################################################
-# create product attributes with multiple requests
-#################################################
-mutation CreateProductAttributesWithMultipleRequests($productId: ID!) {
-  attribute01: createProductAttribute(
-    id: $productId
-    input: {
-      namespace: "custom"
-      name: "color"
-      locale: "en-GB"
-      type: "STRING"
-      value: "green"
-    }
-  ) {
-    name
-    value
-  }
-
-  attrbiute02: createProductAttribute(
-    id: $productId
-    input: {
-      namespace: "custom"
-      name: "size"
-      locale: "en-GB"
-      type: "STRING"
-      value: "XL"
-    }
-  ) {
-    name
-    value
-  }
-}
-
-#################################################
-# create product attributes using single request
-#################################################
-mutation CreateProductAttributesWithSingleRequest($productId: ID!) {
-  createAttributes: createProductAttributes(
-    id: $productId
-    input: [
-      {
-        namespace: "custom"
-        name: "color"
-        locale: "en-GB"
-        type: "STRING"
-        value: "red"
-      }
-      {
-        namespace: "custom"
-        name: "size"
-        locale: "en-GB"
-        type: "STRING"
-        value: "S"
-      }
-    ]
-  ) {
-    name
-    value
-  }
-}
-
-#################################################
-# batch product update:
-# * enable stock management
-# * add multiple attributes
-#################################################
-mutation BatchUpdateProduct($productId: ID!) {
-  stock: enableProductStockManagement(
-    id: $productId
-    input: { initialAvailableStock: 100, stockThreshold: 5 }
-  ) {
-    availableStock
-    stockThreshold
-    availabilityState
-    purchasable
-  }
-
-  attributes: createProductAttributes(
-    id: $productId
-    input: [
-      {
-        namespace: "custom"
-        name: "color"
-        locale: "en-GB"
-        type: "STRING"
-        value: "green"
-      }
-      {
-        namespace: "custom"
-        name: "size"
-        locale: "en-GB"
-        type: "STRING"
-        value: "XL"
-      }
-    ]
-  ) {
-    name
-    value
-  }
-}
-
-#################################################
-# upload binary data
-#################################################
-mutation UploadImage($file: Upload!) {
-  upload: uploadImage(file: $file) {
-    filename
-    mimetype
-    encoding
   }
 }
 ```
@@ -284,10 +59,11 @@ mutation UploadImage($file: Upload!) {
 
 ```JSON
 {
-  "sort": "createdAt,ASC",
-  "page": 0,
-  "size": 10,
-  "productId": "bb044796-f085-476b-a494-eaa9ca7656df"
+  "legalContent": [
+    "privacy-policy",
+    "terms-and-conditions",
+    "right-of-withdrawal"
+  ]
 }
 ```
 
@@ -295,59 +71,59 @@ mutation UploadImage($file: Upload!) {
 
 ```JSON
 {
-  "X-Beyond-API": "https://taggle.beyondshop.cloud/api",
-  "Authorization": "Bearer <TOKEN>"
+  "X-Beyond-API": "https://instore-checkout.beyondshop.cloud/api"
 }
 ```
 
-### Uploading image
+### output/response
 
-See [multipart form field structure](https://github.com/jaydenseric/graphql-multipart-request-spec#multipart-form-field-structure)
-
-#### request
-
-```sh
-$ curl -vvvv localhost:4000 \
-  -F operations='{ "query": "mutation ($file: Upload!) { uploadImage(file: $file) { filename mimetype encoding} }", "variables": { "file": null } }' \
-  -F map='{ "0": ["variables.file"] }' \
-  -F 0=@/Users/jfischer/dev/git/kitten-app/src/main/resources/static/images/sad-kitten.jpg
-```
-
-#### output/response
-
-```sh
-* Rebuilt URL to: localhost:4000/
-*   Trying ::1...
-* TCP_NODELAY set
-* Connected to localhost (::1) port 4000 (#0)
-> POST / HTTP/1.1
-> Host: localhost:4000
-> User-Agent: curl/7.54.0
-> Accept: */*
-> Content-Length: 33396
-> Expect: 100-continue
-> Content-Type: multipart/form-data; boundary=------------------------f9c85dd5eea337d4
->
-< HTTP/1.1 100 Continue
-< HTTP/1.1 200 OK
-< X-Powered-By: Express
-< Access-Control-Allow-Origin: *
-< Content-Type: application/json
-< Content-Length: 55
-< Date: Mon, 20 Aug 2018 08:50:08 GMT
-< Connection: keep-alive
-<
-{"data":{"uploadImage":{"filename":"sad-kitten.jpg","mimetype":"image/jpeg","encoding":"7bit"}}}
-* Connection #0 to host localhost left intact
-```
-
-#### resolver log
-
-```javascript
-{ file:
-   Promise {
-     { stream: [FileStream],
-     filename: 'sad-kitten.jpg',
-     mimetype: 'image/jpeg',
-     encoding: '7bit' } } }
+```json
+{
+  "data": {
+    "shop": {
+      "name": "Cork & Culture",
+      "primaryHostname": "instore-checkout.beyondshop.cloud",
+      "defaultLocale": "en-GB",
+      "attributes": [
+        {
+          "name": "instore-checkout:address",
+          "value": "{\"company\":\"Corck & Culture Ltd.\",\"firstName\":\"Sylvia Efe Florian Jens Timo\",\"lastName\":\"ePages\",\"email\":\"t.senechal@epages.com\",\"phone\":null,\"fax\":null,\"street\":\"10 Downing Street\",\"street2\":null,\"postalCode\":\"SW1A 2AA\",\"city\":\"London\",\"state\":null,\"country\":\"GB\"}"
+        },
+        {
+          "name": "instore-checkout:payment-method",
+          "value": "https://instore-checkout.beyondshop.cloud/api/payment-methods/2e1746f4-80fe-4519-b4b6-724c74f45d9a"
+        },
+        {
+          "name": "instore-checkout:shipping-method",
+          "value": "https://instore-checkout.beyondshop.cloud/api/shipping-zones/3d96dd5e-dd8d-4ea4-8edb-6a08332bbaa3/shipping-methods/50d76a1f-aa45-4208-9f99-f2748e06df98"
+        }
+      ],
+      "images": [
+        {
+          "label": "logo",
+          "data": {
+            "href": "https://instore-checkout.beyondshop.cloud/api/core-storage/images/cork&culture.jpg?hash=764711c4e4594ec5638891a107173748ac1bc2ca{&width,height,upscale}"
+          }
+        }
+      ]
+    },
+    "legalContent": [
+      {
+        "type": "privacy-policy",
+        "content": "",
+        "pdf": null
+      },
+      {
+        "type": "terms-and-conditions",
+        "content": "",
+        "pdf": null
+      },
+      {
+        "type": "right-of-withdrawal",
+        "content": "",
+        "pdf": null
+      }
+    ]
+  }
+}
 ```
